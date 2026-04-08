@@ -6,29 +6,32 @@ import java.net.InetAddress;
 
 public class UDPServer {
     public static void main(String[] args) throws Exception {
-        // Porta sugerida nos slides
-        DatagramSocket udpsocket = new DatagramSocket(6789);
+        // Porta definida para o trabalho
+        int porta = 6789;
+        DatagramSocket udpsocket = new DatagramSocket(porta);
 
-        // Buffer grande para suportar até 60KB sem truncar
+        // Buffer de 64KB (limite máximo do UDP para evitar truncamento)
         byte[] buffer = new byte[65507];
 
-        System.out.println("Servidor UDP pronto para os testes do Trabalho 03...");
+        System.out.println("--- SERVIDOR UDP INICIADO (Porta: " + porta + ") ---");
+        System.out.println("Aguardando pacotes do Cliente...");
 
         while (true) {
+            // Prepara o pacote para receber os dados
             DatagramPacket recebe = new DatagramPacket(buffer, buffer.length);
 
-            // O servidor fica bloqueado aqui até chegar um pacote [cite: 198]
+            // O servidor trava aqui até receber algo
             udpsocket.receive(recebe);
 
-            InetAddress ip = recebe.getAddress();
-            int port = recebe.getPort();
+            InetAddress ipCliente = recebe.getAddress();
+            int portaCliente = recebe.getPort();
+            int tamanhoRecebido = recebe.getLength();
 
-            // Apenas avisa no console que chegou (sem converter 60KB para String)
-            System.out.println("Pacote de " + recebe.getLength() + " bytes recebido de " + ip);
+            System.out.println("Recebido: " + tamanhoRecebido + " bytes de " + ipCliente);
 
-            // Envia o ACK (Confirmação) exigido no Trabalho 03
+            // Envia o ACK (Confirmação) de volta para o cliente
             byte[] ack = "OK".getBytes();
-            DatagramPacket responde = new DatagramPacket(ack, ack.length, ip, port);
+            DatagramPacket responde = new DatagramPacket(ack, ack.length, ipCliente, portaCliente);
             udpsocket.send(responde);
         }
     }
